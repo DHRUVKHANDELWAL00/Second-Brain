@@ -1,21 +1,57 @@
 import express from 'express';
 import {Response,NextFunction,Request} from 'express'
+import jwt,{ Jwt } from 'jsonwebtoken';
 const app=express();
-
+import { JWT_PASSWORD } from './config';
+import { ContentModel, UserModel } from './db';
+import { userMiddleware } from './middleware';
+app.use(express.json())
 app.get("/",(req:Request,res:Response)=>{
     res.send('hi')
 })
-app.post('/api/v1/signup',(req:Request,res:Response)=>{
-    const {name,password}=req.body;
-    console.log({name,password});
+app.post('/api/v1/signup',async(req:Request,res:Response)=>{
+    const {username,password}=req.body;
+    console.log({username,password});
+    await UserModel.create({username,password})
+    res.json({
+        message:'User created successfully'
+    })
 })
-app.post('/api/v1/signin',(req:Request,res:Response)=>{
-    const {name,password}=req.body;
-    console.log({name,password});
+app.post('/api/v1/signin',async(req:Request,res:Response)=>{
+    const {username,password}=req.body;
+    console.log(req.body)
+    console.log({username,password});
+    const findUser=await UserModel.findOne({username,password})
+    if(findUser){
+        const token=jwt.sign({
+            id:findUser._id
+        },JWT_PASSWORD)
+        res.json({
+            message:"Signed in successfully",
+            token
+        })
+    }else{
+        res.status(403).json({
+            message:"Invalid username or password"
+        })
+    }
 })
-app.post('/api/v1/createcontent',(req:Request,res:Response)=>{
-    const {name,password}=req.body;
-    console.log({name,password});
+app.post('/api/v1/createcontent',userMiddleware,async(req:Request,res:Response)=>{
+    const {link,title,type}=req.body;
+    //@ts-ignore
+    console.log({link,title,type,id:req.userId})
+    await ContentModel.create({
+        link,
+        title,
+        type,
+        //@ts-ignore
+        userId:req.userId,
+        tags:[]
+    })
+    res.json({
+        message:"Content added"
+    })
+
 })
 app.get('/api/v1/getAllContent',(req:Request,res:Response)=>{
     const {name,password}=req.body;
