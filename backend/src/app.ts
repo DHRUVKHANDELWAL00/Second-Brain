@@ -1,6 +1,6 @@
 import express from 'express';
 import {Response,NextFunction,Request} from 'express'
-import jwt,{ Jwt } from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 const app=express();
 import { JWT_PASSWORD } from './config';
 import { ContentModel, UserModel } from './db';
@@ -19,13 +19,14 @@ app.post('/api/v1/signup',async(req:Request,res:Response)=>{
 })
 app.post('/api/v1/signin',async(req:Request,res:Response)=>{
     const {username,password}=req.body;
-    console.log(req.body)
-    console.log({username,password});
+    // console.log(req.body)
+    // console.log({username,password});
     const findUser=await UserModel.findOne({username,password})
     if(findUser){
         const token=jwt.sign({
             id:findUser._id
         },JWT_PASSWORD)
+        console.log('hi'+req.headers['authorization'])
         res.json({
             message:"Signed in successfully",
             token
@@ -37,6 +38,7 @@ app.post('/api/v1/signin',async(req:Request,res:Response)=>{
     }
 })
 app.post('/api/v1/createcontent',userMiddleware,async(req:Request,res:Response)=>{
+    console.log("hi1")
     const {link,title,type}=req.body;
     //@ts-ignore
     console.log({link,title,type,id:req.userId})
@@ -48,6 +50,7 @@ app.post('/api/v1/createcontent',userMiddleware,async(req:Request,res:Response)=
         userId:req.userId,
         tags:[]
     })
+    console.log("hi2")
     res.json({
         message:"Content added"
     })
