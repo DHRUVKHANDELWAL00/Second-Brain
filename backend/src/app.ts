@@ -18,24 +18,27 @@ app.post('/api/v1/signup',async(req:Request,res:Response)=>{
     })
 })
 app.post('/api/v1/signin',async(req:Request,res:Response)=>{
-    const {username,password}=req.body;
-    // console.log(req.body)
-    // console.log({username,password});
-    const findUser=await UserModel.findOne({username,password})
-    if(findUser){
-        const token=jwt.sign({
-            id:findUser._id
-        },JWT_PASSWORD)
-        console.log('hi'+req.headers['authorization'])
-        res.json({
-            message:"Signed in successfully",
-            token
-        })
-    }else{
-        res.status(403).json({
-            message:"Invalid username or password"
-        })
-    }
+    const { username, password } = req.body;
+
+const findUser = await UserModel.findOne({ username, password });
+if (findUser) {
+    const token = jwt.sign(
+        { id: findUser._id },
+        JWT_PASSWORD
+    );
+
+    console.log('Generated Token:', token); // Logs the token
+    console.log('Authorization Header (should be missing):', req.headers['authorization']); // Logs undefined
+
+    res.json({
+        message: "Signed in successfully",
+        token,
+    });
+} else {
+    res.status(403).json({
+        message: "Invalid username or password",
+    });
+}
 })
 app.post('/api/v1/createcontent',userMiddleware,async(req:Request,res:Response)=>{
     console.log("hi1")
@@ -50,7 +53,6 @@ app.post('/api/v1/createcontent',userMiddleware,async(req:Request,res:Response)=
         userId:req.userId,
         tags:[]
     })
-    console.log("hi2")
     res.json({
         message:"Content added"
     })
