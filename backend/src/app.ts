@@ -58,13 +58,26 @@ app.post('/api/v1/createcontent',userMiddleware,async(req:Request,res:Response)=
     })
 
 })
-app.get('/api/v1/getAllContent',(req:Request,res:Response)=>{
-    const {name,password}=req.body;
-    console.log({name,password});
+app.get('/api/v1/getAllContent',userMiddleware,async(req:Request,res:Response)=>{
+    //@ts-ignore
+    const userId=req.userId;
+    const content=await ContentModel.find({
+        userId:userId
+    }).populate("userId","username")
+    res.json({
+        content
+    })
 })
-app.delete('/api/v1/content',(req:Request,res:Response)=>{
-    const {name,password}=req.body;
-    console.log({name,password});
+app.delete('/api/v1/content',async(req:Request,res:Response)=>{
+    const {contentId}=req.body;
+    await ContentModel.deleteMany({
+        contentId,
+        //@ts-ignore
+        userId:req.userId
+    })
+    res.json({
+        message:"Content Deleted Successfully"
+    })
 })
 app.post('/api/v1/brain/share',(req:Request,res:Response)=>{
     const {name,password}=req.body;
