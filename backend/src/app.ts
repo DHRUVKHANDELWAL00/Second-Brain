@@ -3,8 +3,9 @@ import {Response,NextFunction,Request} from 'express'
 import jwt from "jsonwebtoken";
 const app=express();
 import { JWT_PASSWORD } from './config';
-import { ContentModel, UserModel } from './db';
+import { ContentModel, LinkModel, UserModel } from './db';
 import { userMiddleware } from './middleware';
+import { random } from './utils';
 app.use(express.json())
 app.get("/",(req:Request,res:Response)=>{
     res.send('hi')
@@ -79,13 +80,70 @@ app.delete('/api/v1/content',async(req:Request,res:Response)=>{
         message:"Content Deleted Successfully"
     })
 })
-app.post('/api/v1/brain/share',(req:Request,res:Response)=>{
-    const {name,password}=req.body;
-    console.log({name,password});
+app.post('/api/v1/brain/share',userMiddleware,async(req:Request,res:Response)=>{
+    const {share}=req.body
+     
+    if(share){
+        const exist=await LinkModel.findOne({
+            //@ts-ignore
+            userId:req.userId
+        })
+        if(exist){
+            res.json({
+                hash:exist.hash
+            })
+            return;
+        }
+        const hash=random(10)
+        await LinkModel.create({
+            //@ts-ignore
+            userId:req.userId,
+            hash:hash
+        })
+        res.json({
+            message:"Link generated",
+            hash:hash
+
+        })
+    }else{
+        await LinkModel.deleteOne({
+            //@ts-ignore
+            userId:req.userId
+        })
+        res.json({
+            message:"Link deleted successfully"
+        })
+    }
 })
-app.get('/api/v1/brain/:shareLink',(req:Request,res:Response)=>{
-    const {name,password}=req.body;
-    console.log({name,password});
+app.get('/api/v1/brain/:shareLink',async(req:Request,res:Response)=>{
+    const hash=req.params.shareLink;
+
+    const link=await LinkModel.findOne({
+        hash
+    })
+    if(!link){
+        res.status(411).json({
+            message:"Sorry incorrect input"
+        })
+        return;
+    }
+    //userid
+    const content=await ContentModel.find({
+        userId:link.userId
+    })
+    const user=await UserModel.findOne({ 
+        _id:link.userId
+    })
+    // if(!user){
+    //     res.status(411).json({
+    //         message:"Sorry incorrect input"
+    //     })
+    //     return;
+    // }
+    res.json({
+        username:user?.username,
+        content
+    })
 })
 app.listen(5000,()=>{
     console.log('Server is running on port 5000')
