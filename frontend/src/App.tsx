@@ -13,7 +13,7 @@ function App() {
       </div>
       <div className="h-full w-5/6 bg-slate-200 flex flex-row justify-end gap-4">
         <Button startIcon={<PlusIcon size="lg"/>} variant='primary' text='Add Content' size="md"/>
-      <Button startIcon={<ShareIcon size="lg"/>} variant='secondary' text='Share Brain' size="md"/>
+      <Button startIcon={<ShareIcon size="lg"/>} variant='secondary' text='Share Brain' size="md" />
       </div>
     </div>
   )

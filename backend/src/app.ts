@@ -116,32 +116,25 @@ app.post('/api/v1/brain/share',userMiddleware,async(req:Request,res:Response)=>{
     }
 })
 app.get('/api/v1/brain/:shareLink',async(req:Request,res:Response)=>{
-    const hash=req.params.shareLink;
-
+    const shareLink=req.params.shareLink;
     const link=await LinkModel.findOne({
-        hash
+        hash:shareLink
     })
+    console.log(link)
     if(!link){
-        res.status(411).json({
-            message:"Sorry incorrect input"
+        res.json({
+            message:"Incorrect ShareLink"
         })
         return;
     }
-    //userid
+    const userId=link.userId;
+
     const content=await ContentModel.find({
-        userId:link.userId
+        userId:userId
     })
-    const user=await UserModel.findOne({ 
-        _id:link.userId
-    })
-    // if(!user){
-    //     res.status(411).json({
-    //         message:"Sorry incorrect input"
-    //     })
-    //     return;
-    // }
+    
     res.json({
-        username:user?.username,
+        // username:user?.username,
         content
     })
 })
